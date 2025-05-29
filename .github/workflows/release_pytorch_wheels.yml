@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         python_version: ["3.11", "3.12"]
-        families: ["gfx110X"]
+        families: ["gfx110X-dgpu"]
     uses: ./.github/workflows/build_pytorch_wheels.yml
     with:
       families: ${{ matrix.families }}
