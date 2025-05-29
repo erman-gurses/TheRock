@@ -65,4 +65,4 @@ jobs:
             --find-links=https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/ \
             torch
 
-          $PYTHON_BIN build_tools/torch/test_installed_torch.py
+          $PYTHON_BIN external-builds/pytorch/test_installed_torch.py
