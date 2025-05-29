@@ -358,77 +358,64 @@ def do_build_pytorch_vision(
 
 def main(argv: list[str]):
     p = argparse.ArgumentParser(prog="build_prod_wheels.py")
-    p.add_argument("--find-links", help="Pip find-links to pass to pip install")
-    p.add_argument("--pip-cache-dir", type=Path, help="Pip cache dir")
-    # Note that we default to >1.0 because at the time of writing, we had
-    # 0.1.0 release placeholder packages out on pypi and we don't want them
-    # taking priority.
-    p.add_argument(
+    sub_p = p.add_subparsers(required=True)
+
+    # -------- install-rocm subcommand --------
+    install_rocm_p = sub_p.add_parser(
+        "install-rocm", help="Install rocm-sdk wheels to the current venv"
+    )
+    install_rocm_p.add_argument(
+        "--find-links", help="Pip find-links to pass to pip install"
+    )
+    install_rocm_p.add_argument("--pip-cache-dir", type=Path, help="Pip cache dir")
+    install_rocm_p.add_argument(
         "--rocm-sdk-version",
         default=">1.0",
         help="rocm-sdk version to match (with comparison prefix)",
     )
-    p.add_argument(
+    install_rocm_p.add_argument(
         "--pre",
         default=True,
         action=argparse.BooleanOptionalAction,
         help="Include pre-release packages (default True)",
     )
-
-    sub_p = p.add_subparsers(required=True)
-    install_rocm_p = sub_p.add_parser(
-        "install-rocm", help="Install rocm-sdk wheels to the current venv"
-    )
     install_rocm_p.set_defaults(func=do_install_rocm)
 
+    # -------- build subcommand --------
     build_p = sub_p.add_parser("build", help="Build pytorch wheels")
+    build_p.add_argument("--find-links", help="Pip find-links to pass to pip install")
+    build_p.add_argument("--pip-cache-dir", type=Path, help="Pip cache dir")
     build_p.add_argument(
-        "--install-rocm",
+        "--rocm-sdk-version",
+        default=">1.0",
+        help="rocm-sdk version to match (with comparison prefix)",
+    )
+    build_p.add_argument(
+        "--pre",
+        default=True,
         action=argparse.BooleanOptionalAction,
-        help="Install rocm-sdk before building",
+        help="Include pre-release packages (default True)",
     )
+    build_p.add_argument("--install-rocm", action=argparse.BooleanOptionalAction)
+    build_p.add_argument("--clean", action=argparse.BooleanOptionalAction)
     build_p.add_argument(
-        "--output-dir",
-        type=Path,
-        required=True,
-        help="Directory to copy built wheels to",
-    )
-    build_p.add_argument(
-        "--pytorch-dir",
-        default=directory_if_exists(script_dir / "pytorch"),
-        type=Path,
-        help="PyTorch source directory",
+        "--pytorch-dir", type=Path, default=directory_if_exists(script_dir / "pytorch")
     )
     build_p.add_argument(
         "--pytorch-audio-dir",
-        default=directory_if_exists(script_dir / "pytorch_audio"),
         type=Path,
-        help="pytorch_audo source directory",
+        default=directory_if_exists(script_dir / "pytorch_audio"),
     )
     build_p.add_argument(
         "--pytorch-vision-dir",
-        default=directory_if_exists(script_dir / "pytorch_vision"),
         type=Path,
-        help="pytorch_vision source directory",
+        default=directory_if_exists(script_dir / "pytorch_vision"),
     )
-    build_p.add_argument(
-        "--pytorch-rocm-arch", required=True, help="gfx arch to build pytorch with"
-    )
-    build_p.add_argument(
-        "--pytorch-build-number", default="1", help="Build number to append to version"
-    )
-    today = date.today()
-    formatted_date = today.strftime("%Y%m%d")
-    build_p.add_argument(
-        "--version-suffix",
-        default=f"+rocmsdk{formatted_date}",
-        help="PyTorch version suffix",
-    )
-    build_p.add_argument(
-        "--clean",
-        action=argparse.BooleanOptionalAction,
-        help="Clean build directories before building",
-    )
+    build_p.add_argument("--pytorch-rocm-arch", required=True)
+    build_p.add_argument("--pytorch-build-number", default="1")
+    formatted_date = date.today().strftime("%Y%m%d")
+    build_p.add_argument("--version-suffix", default=f"+rocmsdk{formatted_date}")
+    build_p.add_argument("--output-dir", type=Path, required=True)
     build_p.set_defaults(func=do_build)
 
     args = p.parse_args(argv)
