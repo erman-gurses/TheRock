@@ -149,7 +149,7 @@ jobs:
           docker run --rm \
             -v ${{ github.workspace }}:/therock \
             -w /therock \
-            -e AMDGPU_FAMILIES=${{ matrix.target_bundle.amdgpu_family }} \
+            -e AMDGPU_FAMILIES=gfx942 \
             -e VERSION_SUFFIX=${{ needs.setup_metadata.outputs.version }} \
             ${{ env.BUILD_IMAGE }} \
               ./build_tools/torch/build_prod_wheels.py build \
