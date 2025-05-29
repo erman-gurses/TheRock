@@ -134,15 +134,14 @@ jobs:
           echo "Building ${{ env.DIST_ARCHIVE }}"
           tar cfz "${{ env.DIST_ARCHIVE }}" .
 
-      - name: Build Python Packages
+      - name: Build PyTorch Production Wheels
         run: |
-          ./build_tools/linux_portable_build.py \
-            --image=${{ env.BUILD_IMAGE }} \
-            --output-dir=${{ env.OUTPUT_DIR }}/packages \
-            --build-python-only \
-            --artifact-dir=${{ env.OUTPUT_DIR }}/build/artifacts \
-            -- \
-            "--version=${{ needs.setup_metadata.outputs.version }}"
+          ./external-builds/pytorch/build_prod_wheels.py \
+            --install-rocm \
+            --clean \
+            --output-dir ${{ env.OUTPUT_DIR }}/packages/dist \
+            --pytorch-rocm-arch ${{ matrix.target_bundle.amdgpu_family }} \
+            --version-suffix "+rocmsdk${{ needs.setup_metadata.outputs.version }}"
 
       - name: Upload Tarball to GitHub
         uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
