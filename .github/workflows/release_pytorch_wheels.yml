@@ -10,7 +10,7 @@ jobs:
         families: ["gfx110X"]
     uses: ./.github/workflows/build_pytorch_wheels.yml
     with:
-      gfx_arch: ${{ matrix.families }}
+      families: ${{ matrix.families }}
       python_version: ${{ matrix.python_version }}
       find_links: "https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ matrix.families }}/index.html"
       version_suffix: "20250528"
