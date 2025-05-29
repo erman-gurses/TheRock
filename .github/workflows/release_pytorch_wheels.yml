@@ -9,6 +9,7 @@ permissions:
 jobs:
   build_pytorch_grid:
     strategy:
+      fail-fast: false
       matrix:
         python_version: ["3.11", "3.12"]
         families: ["gfx110X-dgpu"]
