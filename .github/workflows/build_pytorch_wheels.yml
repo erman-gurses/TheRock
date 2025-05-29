@@ -35,7 +35,7 @@ jobs:
         run: |
           PY_VER="${{ inputs.python_version }}"
           PY_TAG="cp${PY_VER//./}-cp${PY_VER//./}"
-          PYTHON_BIN="/opt/python/${PY_TAG}/bin/python3"
+          PYTHON_BIN="/opt/python/${PY_TAG}/bin/python"
 
           echo "Using Python: $PYTHON_BIN"
 
@@ -44,7 +44,7 @@ jobs:
             --clean \
             --output-dir ${{ env.OUTPUT_DIR }}/packages/dist \
             --pytorch-rocm-arch ${{ inputs.families }} \
-            --find-links "${{ inputs.find_links }}" \
+            --find-links "https://therock-nightly-python.s3.us-east-2.amazonaws.com/gfx110X-dgpu/index.html" \
             --version-suffix "+rocmsdk${{ inputs.version_suffix }}"
 
       - name: Upload wheels to S3
