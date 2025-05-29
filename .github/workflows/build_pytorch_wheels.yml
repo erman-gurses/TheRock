@@ -55,8 +55,14 @@ jobs:
 
       - name: Test Installed Wheel
         run: |
-          PYTHON_BIN="/opt/python/cp${{ inputs.python_version//./ }}-cp${{ inputs.python_version//./ }}/bin/python"
+          PY_VER="${{ inputs.python_version }}"
+          PY_TAG="cp${PY_VER//./}-cp${PY_VER//./}"
+          PYTHON_BIN="/opt/python/${PY_TAG}/bin/python"
+
+          echo "Using $PYTHON_BIN to test installed wheel..."
+
           $PYTHON_BIN -m pip install --no-cache-dir \
             --find-links=https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/ \
             torch
+
           $PYTHON_BIN build_tools/torch/test_installed_torch.py
