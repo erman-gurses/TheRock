@@ -33,9 +33,9 @@ jobs:
 
       - name: Build PyTorch Wheels
         run: |
-          PYTHON_VERSION="${{ inputs.python_version }}"
-          PY_NO_DOTS="${PYTHON_VERSION//./}"
-          PYTHON_BIN="/opt/python/cp${PY_NO_DOTS}-cp${PY_NO_DOTS}/bin/python3"
+          PY_VER="${{ inputs.python_version }}"
+          PY_TAG="cp${PY_VER//./}-cp${PY_VER//./}"
+          PYTHON_BIN="/opt/python/${PY_TAG}/bin/python3"
 
           echo "Using Python: $PYTHON_BIN"
 
