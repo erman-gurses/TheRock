@@ -39,7 +39,7 @@ jobs:
 
           echo "Using Python: $PYTHON_BIN"
 
-          $PYTHON_BIN ./build_tools/torch/build_prod_wheels.py build \
+          $PYTHON_BIN ./external-builds/pytorch/build_prod_wheels.py  build \
             --install-rocm \
             --clean \
             --output-dir ${{ env.OUTPUT_DIR }}/packages/dist \
