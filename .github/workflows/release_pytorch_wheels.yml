@@ -1,4 +1,4 @@
-name: Release PyTorch Wheels
+name: Release Linux PyTorch Wheels
 
 on:
   workflow_dispatch:
