@@ -53,8 +53,8 @@ jobs:
 
           echo "Checking out patched PyTorch repositories..."
           $PYTHON_BIN external-builds/pytorch/pytorch_torch_repo.py checkout
-          $PYTHON_BIN external-builds/pytorch/pytorch_torch_audio_repo.py checkout
-          $PYTHON_BIN external-builds/pytorch/pytorch_torch_vision_repo.py checkout
+          $PYTHON_BIN external-builds/pytorch/pytorch_audio_repo.py checkout
+          $PYTHON_BIN external-builds/pytorch/pytorch_vision_repo.py checkout
 
           echo "Listing contents of external-builds/pytorch:"
           ls -lh external-builds/pytorch
