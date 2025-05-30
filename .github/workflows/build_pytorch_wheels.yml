@@ -40,6 +40,20 @@ jobs:
           echo "Listing files in /opt/python to verify manylinux presence:"
           ls -lh /opt/python
 
+      - name: Checkout PyTorch Source Repos
+        run: |
+          PY_VER="${{ inputs.python_version }}"
+          PY_TAG="cp${PY_VER//./}-cp${PY_VER//./}"
+          PYTHON_BIN="/opt/python/${PY_TAG}/bin/python"
+
+          echo "Checking out patched PyTorch repositories..."
+          $PYTHON_BIN external-builds/pytorch/pytorch_torch_repo.py checkout
+          $PYTHON_BIN external-builds/pytorch/pytorch_torch_audio_repo.py checkout
+          $PYTHON_BIN external-builds/pytorch/pytorch_torch_vision_repo.py checkout
+
+          echo "Listing contents of external-builds/pytorch:"
+          ls -lh external-builds/pytorch
+
       - name: Build PyTorch Wheels
         run: |
           PY_VER="${{ inputs.python_version }}"
