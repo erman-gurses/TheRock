@@ -31,6 +31,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "erman-gurses"
+          git config --global user.email "erman.gurses@amd.com"
+
       - name: Confirm Container Environment
         run: |
           echo "Hostname: $(hostname)"
