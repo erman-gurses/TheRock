@@ -50,14 +50,13 @@ jobs:
       - name: Build PyTorch Wheels
         run: |
           echo "Building PyTorch wheels for ${{ inputs.target }}"
-          ./external-builds/pytorch/build_prod_wheels.py \
+          ./external-builds/pytorch/build_prod_wheels.py build \
             --find-links "https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.family }}/index.html" \
             --install-rocm \
             --clean \
             --output-dir ${{ env.OUTPUT_DIR }}/packages/dist \
             --pytorch-rocm-arch ${{ inputs.target }} \
-            --version-suffix "+rocmsdk${{ inputs.version_suffix }}" \
-            build
+            --version-suffix "+rocmsdk${{ inputs.version_suffix }}"
 
       - name: Test Installed Wheel
         run: |
