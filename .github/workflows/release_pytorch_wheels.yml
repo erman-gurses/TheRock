@@ -7,7 +7,16 @@ permissions:
   contents: read
 
 jobs:
-  build_pytorch_grid:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      version_suffix: ${{ steps.set.outputs.version_suffix }}
+    steps:
+      - id: set
+        run: echo "version_suffix=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+  release_pytorch:
+    needs: setup
     strategy:
       fail-fast: false
       matrix:
@@ -15,8 +24,8 @@ jobs:
         target: [gfx942]
     uses: ./.github/workflows/build_pytorch_wheels.yml
     with:
-      target: ${{ matrix.target }}
-      python_version: ${{ matrix.python_version }}
       family: gfx94X-dcgpu
+      python_version: ${{ matrix.python_version }}
+      target: ${{ matrix.target }}
       find_links: https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.family }}/index.html
-      version_suffix: "20250528"
+      version_suffix: ${{ needs.setup.outputs.version_suffix }}
