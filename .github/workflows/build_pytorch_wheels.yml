@@ -67,6 +67,11 @@ jobs:
         run: |
           aws s3 ls s3://therock-nightly-python/${{ inputs.families }}/ --recursive
 
+      - name: Dump Torch S3 index (debug)
+        run: |
+          echo "Fetching index from: https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/index.html"
+          curl -s "https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/index.html"
+
       - name: Test Installed Wheel
         run: |
           PY_VER="${{ inputs.python_version }}"
