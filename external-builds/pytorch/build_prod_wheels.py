@@ -172,19 +172,11 @@ def directory_if_exists(dir: Path) -> Path | None:
 
 
 def do_install_rocm(args: argparse.Namespace):
-    # Use a writable pip cache dir inside the repo
-    pip_cache_dir = args.pip_cache_dir or (Path.cwd() / ".pip_cache")
-    pip_cache_dir.mkdir(parents=True, exist_ok=True)
-    env = {"PIP_CACHE_DIR": str(pip_cache_dir)}
+    # Because the rocm-sdk package caches current GPU selection and such, we
+    # always purge it to ensure a clean rebuild.
+    exec([sys.executable, "-m", "pip", "cache", "remove", "rocm_sdk"], cwd=Path.cwd())
 
-    # Clear old rocm_sdk cache
-    print(f"++ Purging pip cache for rocm_sdk at {pip_cache_dir}")
-    try:
-        exec([sys.executable, "-m", "pip", "cache", "remove", "rocm_sdk"], cwd=Path.cwd(), env=env)
-    except subprocess.CalledProcessError as e:
-        print(f"[WARN] pip cache remove failed: {e}")
-
-    # Do the main pip install
+    # Do the main pip install.
     pip_args = [
         sys.executable,
         "-m",
@@ -193,14 +185,14 @@ def do_install_rocm(args: argparse.Namespace):
         "--force-reinstall",
     ]
     if args.pre:
-        pip_args.append("--pre")
+        pip_args.extend(["--pre"])
     if args.find_links:
         pip_args.extend(["--find-links", args.find_links])
-    pip_args.extend(["--cache-dir", str(pip_cache_dir)])
+    if args.pip_cache_dir:
+        pip_args.extend(["--cache-dir", args.pip_cache_dir])
     rocm_sdk_version = args.rocm_sdk_version if args.rocm_sdk_version else ""
-    pip_args.append(f"rocm-sdk[libraries,devel]{rocm_sdk_version}")
-
-    exec(pip_args, cwd=Path.cwd(), env=env)
+    pip_args.extend([f"rocm-sdk[libraries,devel]{rocm_sdk_version}"])
+    exec(pip_args, cwd=Path.cwd())
     print(f"Installed version: {get_rocm_sdk_version()}")
 
 
@@ -366,64 +358,77 @@ def do_build_pytorch_vision(
 
 def main(argv: list[str]):
     p = argparse.ArgumentParser(prog="build_prod_wheels.py")
-    sub_p = p.add_subparsers(required=True)
+    p.add_argument("--find-links", help="Pip find-links to pass to pip install")
+    p.add_argument("--pip-cache-dir", type=Path, help="Pip cache dir")
+    # Note that we default to >1.0 because at the time of writing, we had
+    # 0.1.0 release placeholder packages out on pypi and we don't want them
+    # taking priority.
+    p.add_argument(
+        "--rocm-sdk-version",
+        default=">1.0",
+        help="rocm-sdk version to match (with comparison prefix)",
+    )
+    p.add_argument(
+        "--pre",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Include pre-release packages (default True)",
+    )
 
-    # -------- install-rocm subcommand --------
+    sub_p = p.add_subparsers(required=True)
     install_rocm_p = sub_p.add_parser(
         "install-rocm", help="Install rocm-sdk wheels to the current venv"
     )
-    install_rocm_p.add_argument(
-        "--find-links", help="Pip find-links to pass to pip install"
-    )
-    install_rocm_p.add_argument("--pip-cache-dir", type=Path, help="Pip cache dir")
-    install_rocm_p.add_argument(
-        "--rocm-sdk-version",
-        default=">1.0",
-        help="rocm-sdk version to match (with comparison prefix)",
-    )
-    install_rocm_p.add_argument(
-        "--pre",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Include pre-release packages (default True)",
-    )
     install_rocm_p.set_defaults(func=do_install_rocm)
 
-    # -------- build subcommand --------
     build_p = sub_p.add_parser("build", help="Build pytorch wheels")
-    build_p.add_argument("--find-links", help="Pip find-links to pass to pip install")
-    build_p.add_argument("--pip-cache-dir", type=Path, help="Pip cache dir")
     build_p.add_argument(
-        "--rocm-sdk-version",
-        default=">1.0",
-        help="rocm-sdk version to match (with comparison prefix)",
-    )
-    build_p.add_argument(
-        "--pre",
-        default=True,
+        "--install-rocm",
         action=argparse.BooleanOptionalAction,
-        help="Include pre-release packages (default True)",
+        help="Install rocm-sdk before building",
     )
-    build_p.add_argument("--install-rocm", action=argparse.BooleanOptionalAction)
-    build_p.add_argument("--clean", action=argparse.BooleanOptionalAction)
     build_p.add_argument(
-        "--pytorch-dir", type=Path, default=directory_if_exists(script_dir / "pytorch")
+        "--output-dir",
+        type=Path,
+        required=True,
+        help="Directory to copy built wheels to",
+    )
+    build_p.add_argument(
+        "--pytorch-dir",
+        default=directory_if_exists(script_dir / "pytorch"),
+        type=Path,
+        help="PyTorch source directory",
     )
     build_p.add_argument(
         "--pytorch-audio-dir",
-        type=Path,
         default=directory_if_exists(script_dir / "pytorch_audio"),
+        type=Path,
+        help="pytorch_audo source directory",
     )
     build_p.add_argument(
         "--pytorch-vision-dir",
-        type=Path,
         default=directory_if_exists(script_dir / "pytorch_vision"),
+        type=Path,
+        help="pytorch_vision source directory",
     )
-    build_p.add_argument("--pytorch-rocm-arch", required=True)
-    build_p.add_argument("--pytorch-build-number", default="1")
-    formatted_date = date.today().strftime("%Y%m%d")
-    build_p.add_argument("--version-suffix", default=f"+rocmsdk{formatted_date}")
-    build_p.add_argument("--output-dir", type=Path, required=True)
+    build_p.add_argument(
+        "--pytorch-rocm-arch", required=True, help="gfx arch to build pytorch with"
+    )
+    build_p.add_argument(
+        "--pytorch-build-number", default="1", help="Build number to append to version"
+    )
+    today = date.today()
+    formatted_date = today.strftime("%Y%m%d")
+    build_p.add_argument(
+        "--version-suffix",
+        default=f"+rocmsdk{formatted_date}",
+        help="PyTorch version suffix",
+    )
+    build_p.add_argument(
+        "--clean",
+        action=argparse.BooleanOptionalAction,
+        help="Clean build directories before building",
+    )
     build_p.set_defaults(func=do_build)
 
     args = p.parse_args(argv)
