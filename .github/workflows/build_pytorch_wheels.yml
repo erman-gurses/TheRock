@@ -65,4 +65,4 @@ jobs:
             --find-links=https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/ \
             torch
 
-          $PYTHON_BIN external-builds/pytorch/pytorch_smoke_test.py
+          $PYTHON_BIN external-builds/pytorch/smoke-tests/pytorch_smoke_test.py
