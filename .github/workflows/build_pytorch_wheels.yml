@@ -31,6 +31,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Confirm Container Environment
+        run: |
+          echo "Hostname: $(hostname)"
+          echo "Current User: $(whoami)"
+          echo "Container ID (if any):"
+          cat /proc/self/cgroup | grep 'docker\|kubepods\|containerd' || echo "No container ID found"
+          echo "Listing files in /opt/python to verify manylinux presence:"
+          ls -lh /opt/python
+
       - name: Build PyTorch Wheels
         run: |
           PY_VER="${{ inputs.python_version }}"
