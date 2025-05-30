@@ -76,7 +76,7 @@ jobs:
           echo "Using $PYTHON_BIN to test installed wheel..."
 
           echo "Installing torch from: https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/index.html"
-          $PYTHON_BIN -m pip install --no-cache-dir \
+          $PYTHON_BIN -m pip install --no-cache-dir --no-index \
             --find-links="https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/index.html" \
             torch
 
@@ -84,3 +84,7 @@ jobs:
           $PYTHON_BIN -c "import torch; print(f'torch version: {torch.__version__}')"
 
           bash external-builds/pytorch/smoke-tests/run_smoke_tests.sh
+
+      - name: Show S3 index.html (debug)
+        run: |
+          curl -s "https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/index.html"
