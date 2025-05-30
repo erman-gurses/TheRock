@@ -12,10 +12,11 @@ jobs:
       fail-fast: false
       matrix:
         python_version: ["3.11", "3.12"]
-        families: ["gfx942"]
+        target: [gfx942]
     uses: ./.github/workflows/build_pytorch_wheels.yml
     with:
-      families: ${{ matrix.families }}
+      target: ${{ matrix.target }}
       python_version: ${{ matrix.python_version }}
-      find_links: "https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ matrix.families }}/index.html"
+      family: gfx94X-dcgpu
+      find_links: https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.family }}/index.html
       version_suffix: "20250528"
