@@ -53,7 +53,7 @@ jobs:
             --clean \
             --output-dir ${{ env.OUTPUT_DIR }}/packages/dist \
             --pytorch-rocm-arch ${{ inputs.families }} \
-            --find-links "https://therock-nightly-python.s3.us-east-2.amazonaws.com/gfx110X-dgpu/index.html" \
+            --find-links "https://therock-nightly-python.s3.us-east-2.amazonaws.com/${{ inputs.families }}/index.html" \
             --version-suffix "+rocmsdk${{ inputs.version_suffix }}"
 
       - name: Upload wheels to S3
